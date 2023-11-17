@@ -3,10 +3,16 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define MAX_TODOS 10
 #define MAX_SIZE_OF_CONTENT 128
 #define DATA_FILE_NAME "data"
 #define TEMP_FILE_NAME "temp"
+#define MAX_LINE_ELEMENTS 2
+
+typedef struct {
+    int line_number;
+    char* content;
+    int isDone;
+} Todo;
 
 void edit_todo(char* line_to_edit, char* new_content);
 void delete_todo(char* line_to_delete);
@@ -14,6 +20,7 @@ void list_todos();
 void create_todo(char* content);
 void purge_todos();
 void help();
+int read_todos_from_file(Todo** todo);
 
 int main(int argc, char* args[]){
     if (argc == 3 && !strcmp(args[1], "-n")) {
@@ -115,26 +122,23 @@ void delete_todo(char* line_to_delete) {
 }
 
 void list_todos() {
-    FILE *file;
-    file = fopen(DATA_FILE_NAME, "r");
-    if (file == NULL) {
-        printf("error while opening %s\n", DATA_FILE_NAME);
-        return;
+    Todo* todo = NULL;
+    int len = read_todos_from_file(&todo);
+    for(int i = 0; i < len; i++) {
+        todo[i].isDone == 1 ? printf("\033[0;32m") : printf("\033[1;31m");
+        printf("%d | %s\n", todo[i].line_number, todo[i].content);
+        printf("\033[0m");
+        free(todo[i].content);
     }
-    char buffer[MAX_SIZE_OF_CONTENT];
-    int line = 0;
-    while(fgets(buffer, MAX_SIZE_OF_CONTENT, file)) {
-        line++;
-        printf("%i | %s", line, buffer);
-    }
-
-    fclose(file);
+    free(todo);
 }
 
 void create_todo(char* content) {
     FILE *file;
     file = fopen(DATA_FILE_NAME, "a");
-    fprintf(file, "%s\n", content);
+    int isDone = 0;
+    
+    fprintf(file, "\"%s\",%i\n", content, isDone);
     fclose(file);
 }
 
@@ -169,4 +173,42 @@ void help() {
     printf("-d [number of line]                 deletes todo by line\n");
     printf("-e [number of line] [new content]   edits todo by line\n");
     printf("-p                                  purge all todos\n");
+}
+
+/**
+ * Reads todo items from a file
+ * 
+ * @note The memory allocated for each content and the entire Todo array
+ * must by freed.
+*/
+int read_todos_from_file(Todo** todo) {
+    FILE * file;
+    file = fopen(DATA_FILE_NAME, "r");
+    if (file == NULL) {
+        printf("error while opening %s\n", DATA_FILE_NAME);
+        return 0;
+    }
+
+    int len=0;
+    char buffer[MAX_SIZE_OF_CONTENT];
+    while(fgets(buffer, MAX_SIZE_OF_CONTENT, file)) {
+        len++;
+
+        //separates entire line by comma
+        char* p = strtok(buffer, ",");
+        char* array_lines[MAX_LINE_ELEMENTS];
+        for(int i = 0; i < MAX_LINE_ELEMENTS; i++) {
+            array_lines[i] = p;
+            p = strtok(NULL, ",");
+        }
+
+        //increases todo size
+        (*todo) = realloc((*todo), len * sizeof(Todo));
+
+        (*todo)[(len - 1)].line_number = len;
+        (*todo)[(len - 1)].content = strdup(array_lines[0]);
+        (*todo)[(len - 1)].isDone = atoi(array_lines[1]);
+    }
+    fclose(file);
+    return len;
 }
