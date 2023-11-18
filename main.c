@@ -101,8 +101,6 @@ void delete_todo(char* line_to_delete) {
         return;
     }
 
-    const int parsed_line_to_delete = atoi(line_to_delete);
-
     FILE *file, *temp;
     int line=0;
     char buffer[MAX_SIZE_OF_CONTENT];
@@ -113,14 +111,14 @@ void delete_todo(char* line_to_delete) {
     }
 
     temp = fopen(TEMP_FILE_NAME, "w");
-    if (file == NULL) {
+    if (temp == NULL) {
         printf("error while opening %s\n", TEMP_FILE_NAME);
         return;
     }
 
     while(fgets(buffer, MAX_SIZE_OF_CONTENT, file)) {
         line++;
-        if(line != parsed_line_to_delete) {
+        if(line != atoi(line_to_delete)) {
             fputs(buffer, temp);
         }
     }
@@ -158,11 +156,11 @@ void create_todo(char* content) {
 }
 
 void purge_todos() {
-    char input;
+    //char input;
     printf("This operation will remove data\n");
 
     printf("Are you shure you want to continue? [y/n]\n");
-    scanf("%c", &input);
+    int input = getchar();
 
     if (input == 'y') {
         FILE *file;
