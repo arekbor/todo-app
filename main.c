@@ -71,7 +71,7 @@ void edit_todo(char* line_to_edit, char* new_content, int* new_isDone) {
 
     Todo* todo = NULL;
     int len = read_todos_from_file(&todo);
-    size_t line_size = MAX_SIZE_OF_CONTENT*sizeof(MAX_SIZE_OF_CONTENT);
+    size_t line_size = MAX_SIZE_OF_CONTENT*sizeof(char);
 
     for(int i = 0; i < len; i++) {
         if (todo[i].line_number == atoi(line_to_edit)) {
@@ -156,9 +156,7 @@ void create_todo(char* content) {
 }
 
 void purge_todos() {
-    //char input;
     printf("This operation will remove data\n");
-
     printf("Are you shure you want to continue? [y/n]\n");
     int input = getchar();
 
